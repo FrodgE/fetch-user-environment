@@ -301,7 +301,7 @@ class FetchEnvironment {
             
             for (let key in res) {
                 if (res.hasOwnProperty(key)) {
-                    // Object has a property thebaseore a difference was found
+                    // Object has a property therefore a difference was found
                     // Add to list of required updates
                     Object.assign(newSettings, res);
                     updated = true;

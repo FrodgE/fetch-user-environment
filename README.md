@@ -2,7 +2,7 @@
 
 This extension checks that the development environment has the required settings applied and extensions installed, as determined by a development leader.
 
-Local user settings and installed extensions are compared with those stored at a shared location.  User settings that are incorrect are updated and user settings that are missing are merged, all other settings are unchanged.  Extensions that are missing or old are __*side loaded*__ to allow for management of proprietory extensions that are not available in the marketplace, all other extensions are unchanged.
+Local user settings and installed extensions are compared with those stored at a shared location.  User settings that are incorrect are updated and user settings that are missing are merged, all other settings are unchanged.  Extensions that are missing or old are __*side loaded*__ to allow for management of proprietary extensions that are not available in the marketplace, all other extensions are unchanged.
 
 ## Features
 
@@ -33,8 +33,8 @@ For example on a Windows system with a shared network resource mapped to Z drive
 
 ```json
 {
-  "fetchUserEnv.remote_settings_path": "Z:\\Devtools\\VSCode\\settings",
-  "fetchUserEnv.remote_extension_path": "Z:\\Devtools\\VSCode\\extensions"
+  "fetchUserEnv.remoteSettingsPath": "Z:\\Devtools\\VSCode\\settings",
+  "fetchUserEnv.remoteExtensionPath": "Z:\\Devtools\\VSCode\\extensions"
 }
 ```
 
@@ -59,7 +59,7 @@ The command pallete item to create the shared content is disabled by default.  T
 Once the current user environment is configured correctly, and the command pallete item is enabled, open the command pallete and run the following command:
 
 ```
-Fetch user environment: Save user enviroment
+Fetch user environment: Save user environment
 ```
 
 #### Manual
@@ -83,7 +83,7 @@ The following commands are available on the command pallete:
 
 * `Fetch user environment: Fetch settings` - Compare the current user settings with those at the shared location.  Settings that are incorrect or missing will be updated.
 * `Fetch user environment: Fetch extensions` - Compare extensions that are installed locally with those at the shared location.  Extensions that are newer or missing will be side loaded.
-* `Fetch user environment: Save user enviroment` - Duplicate the current user enviroment to the shared locations. (only available when enabled in the settings, see above)
+* `Fetch user environment: Save user environment` - Duplicate the current user environment to the shared locations. (only available when enabled in the settings, see above)
 
 ## Settings
 
@@ -91,14 +91,21 @@ All settings and default values are below.  See above for usage details.
 
 ```json
 {
-  "fetchUserEnv.remote_settings_path": null,
-  "fetchUserEnv.remote_extension_path": null,
+  "fetchUserEnv.remoteSettingsPath": null,
+  "fetchUserEnv.remoteExtensionPath": null,
   "fetchUserEnv.palEnableSaveEnv": false
 }
 ```
 
 ## Release Notes
 
+### 1.0.1
+
+Fix typos
+
 ### 1.0.0
 
 Initial release
+
+---
+<a href="https://twitter.com/mr_frodge" class="twitter-follow-button" data-show-count="false">Follow @mr_frodge</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>

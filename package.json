@@ -2,7 +2,7 @@
   "name": "fetch-user-environment",
   "displayName": "Fetch User Environment",
   "description": "Fetch and side load extensions and user settings from a shared location.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "icon": "images/fetch.png",
   "publisher": "michaelnewton",
   "repository": {
@@ -41,7 +41,7 @@
       },
       {
         "command": "fetchUserEnv.saveEnvironment",
-        "title": "Save user enviroment",
+        "title": "Save user environment",
         "category": "Fetch user environment"
       }
     ],
@@ -76,7 +76,7 @@
         "fetchUserEnv.palEnableSaveEnv": {
           "type": "boolean",
           "default": false,
-          "description": "Enable command pallete item to \"Save user enviroment\"."
+          "description": "Enable command pallete item to \"Save user environment\"."
         }
       }
     }
