@@ -12,11 +12,10 @@
   "license": "MIT",
   "keywords": [
     "sync",
-    "side load",
-    "update",
-    "environment",
     "settings",
-    "extensions"
+    "extensions",
+    "update",
+    "side load"
   ],
   "engines": {
     "vscode": "^1.10.0"
