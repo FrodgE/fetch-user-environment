@@ -1,0 +1,103 @@
+{
+  "name": "fetch-user-environment",
+  "displayName": "Fetch User Environment",
+  "description": "Fetch and side load extensions and user settings from a shared location.",
+  "version": "1.0.0",
+  "icon": "images/fetch.png",
+  "publisher": "michaelnewton",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FrodgE/fetch-user-environment.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "sync",
+    "side load",
+    "update",
+    "environment",
+    "settings",
+    "extensions"
+  ],
+  "engines": {
+    "vscode": "^1.10.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/src/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "fetchUserEnv.settings",
+        "title": "Fetch settings",
+        "category": "Fetch user environment"
+      },
+      {
+        "command": "fetchUserEnv.extensions",
+        "title": "Fetch extensions",
+        "category": "Fetch user environment"
+      },
+      {
+        "command": "fetchUserEnv.saveEnvironment",
+        "title": "Save user enviroment",
+        "category": "Fetch user environment"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "fetchUserEnv.saveEnvironment",
+          "when": "config.fetchUserEnv.palEnableSaveEnv"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Fetch User Environment",
+      "properties": {
+        "fetchUserEnv.remoteExtensionPath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Specifies the path for the remote extensions.  Leave blank to disable."
+        },
+        "fetchUserEnv.remoteSettingsPath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Specifies the path for the remote settings.  Leave blank to disable."
+        },
+        "fetchUserEnv.palEnableSaveEnv": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable command pallete item to \"Save user enviroment\"."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "typescript": "^2.0.3",
+    "vscode": "^1.0.0",
+    "mocha": "^2.3.3",
+    "@types/node": "^6.0.40",
+    "@types/mocha": "^2.2.32"
+  },
+  "dependencies": {
+    "fs-extra": "^2.0.0",
+    "semver-compare": "^1.0.0",
+    "strip-json-comments": "^2.0.1"
+  }
+}
