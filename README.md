@@ -99,13 +99,7 @@ All settings and default values are below.  See above for usage details.
 
 ## Release Notes
 
-### 1.0.1
-
-Fix typos
-
-### 1.0.0
-
-Initial release
+See [CHANGELOG.md](CHANGELOG.md)
 
 ---
 <a href="https://twitter.com/mr_frodge" class="twitter-follow-button" data-show-count="false">Follow @mr_frodge</a><script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>

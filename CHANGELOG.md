@@ -1,11 +1,21 @@
 # Change Log
+
 All notable changes to the "fetch-user-environment" extension will be documented in this file.
 
 ## [Unreleased]
+
 N/A
 
+## [1.0.2] - 2017-03-20
+
+- Detect JSON errors with configuration files and alert the user
+- Provide feedback if settings and extensions are up to date when run from the command pallete
+- Extension no longer saves itself when saving the environment
+
 ## [1.0.1] - 2017-03-19
+
 - Fix typos
 
 ## [1.0.0] - 2017-03-19
+
 - Initial release
