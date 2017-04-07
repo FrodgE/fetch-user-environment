@@ -4,7 +4,7 @@ All notable changes to the "fetch-user-environment" extension will be documented
 
 ## [Unreleased]
 
-N/A
+- Add button to reload window when settings or extensions are updated
 
 ## [1.0.2] - 2017-03-20
 

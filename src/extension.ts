@@ -222,8 +222,14 @@ class FetchEnvironment {
         try {
             // Compare local versions to remote, and copy newer versions
             if (this.installNewExtensions()) {
-                // Extensions were updated, restart required
-                vscode.window.showInformationMessage('Extensions updated, please restart Visual Studio Code');
+                // Extensions were updated, reload/restart required
+                let reloadOption = {title: 'Reload'};
+                vscode.window.showInformationMessage('Extensions updated, please restart Visual Studio Code or reload window', reloadOption)
+                    .then(choice => {
+                        if (choice === reloadOption) {
+                            vscode.commands.executeCommand('workbench.action.reloadWindow');
+                        }
+                    });
             }
             else {
                 if (prompt) {
@@ -287,8 +293,14 @@ class FetchEnvironment {
         try {
             // Compare local settings to remote, update as required
             if (this.compareRemoteSettings()) {
-                // Settings were updated, restart required
-                vscode.window.showInformationMessage('Settings updated, please restart Visual Studio Code');
+                // Settings were updated, reload/restart required
+                let reloadOption = {title: 'Reload'};
+                vscode.window.showInformationMessage('Settings updated, please restart Visual Studio Code or reload window', reloadOption)
+                    .then(choice => {
+                        if (choice === reloadOption) {
+                            vscode.commands.executeCommand('workbench.action.reloadWindow');
+                        }
+                    });
             }
             else {
                 if (prompt) {
