@@ -517,7 +517,7 @@ class FetchEnvironment {
         // Compare each item
         for (let prop in compare) {
             // Check if we need to dig deeper...
-            if ((!Array.isArray(compare)) && (typeof(compare[prop]) === "object")) {
+            if (typeof(compare[prop]) === "object") {
                 let diff = this.compareUpdate(base[prop] , compare[prop]);
 
                 // Check if differences were found

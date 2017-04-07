@@ -4,6 +4,11 @@ All notable changes to the "fetch-user-environment" extension will be documented
 
 ## [Unreleased]
 
+- N/A
+
+## [1.0.3] - 2017-04-08
+
+- Fix comparison of object arrays within user settings
 - Add button to reload window when settings or extensions are updated
 
 ## [1.0.2] - 2017-03-20
