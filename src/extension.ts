@@ -645,23 +645,27 @@ class FetchEnvironment {
     }
 
     private updateSettings(newSettings: {}) {
-        var localSettings;
+        var localSettings = {};
+        var localSettingsFile = path.join(this._localSettingsPath, "settings.json");
 
-        try {
-            // Read local settings file so new settings can be merged and saved
-            // Need to strip comments out...
-            localSettings = JSON.parse(stripJsonComments(fs.readFileSync(path.join(this._localSettingsPath, "settings.json"), "UTF-8")));
-        }
-        catch (err) {
-            throw new JSONError(err.message, path.join(this._localSettingsPath, "settings.json"));
+        // Does the local settings file exist yet?
+        if (fs.existsSync(localSettingsFile)) {
+            try {
+                // It exists!  Read local settings file so new settings can be merged and saved
+                // Need to strip comments out...
+                localSettings = JSON.parse(stripJsonComments(fs.readFileSync(localSettingsFile, "UTF-8")));
+            }
+            catch (err) {
+                throw new JSONError(err.message, localSettingsFile);
+            }
         }
 
         // Update cached local settings
         Object.assign(localSettings, newSettings);
 
-        // Save back to disk
+        // Save back to disk (creating the local settings file if required)
         var localSettingsJSON = JSON.stringify(localSettings, null, 2);
-        fs.writeFileSync(path.join(this._localSettingsPath, "settings.json"), localSettingsJSON, "UTF-8");
+        fs.writeFileSync(localSettingsFile, localSettingsJSON, "UTF-8");
     }
 
     dispose() {}

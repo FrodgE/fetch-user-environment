@@ -4,7 +4,7 @@ All notable changes to the "fetch-user-environment" extension will be documented
 
 ## [Unreleased]
 
-- N/A
+- Fix ENOENT (no such file or directory) error when attempting to read the local settings file before it has been created
 
 ## [1.0.3] - 2017-04-08
 
