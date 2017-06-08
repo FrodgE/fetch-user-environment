@@ -2,7 +2,7 @@
   "name": "fetch-user-environment",
   "displayName": "Fetch User Environment",
   "description": "Fetch and side load extensions and user settings from a shared location.",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "icon": "images/fetch.png",
   "publisher": "michaelnewton",
   "repository": {
@@ -63,7 +63,7 @@
             "null"
           ],
           "default": null,
-          "description": "Specifies the path for the remote extensions.  Leave blank to disable."
+          "description": "Specifies the path for the remote extensions.  Set to null to disable."
         },
         "fetchUserEnv.remoteSettingsPath": {
           "type": [
@@ -71,7 +71,15 @@
             "null"
           ],
           "default": null,
-          "description": "Specifies the path for the remote settings.  Leave blank to disable."
+          "description": "Specifies the path for the remote settings.  Set to null to disable."
+        },
+        "fetchUserEnv.remoteDefaultSettingsFilename": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Specifies the filename for the default settings at the remote settings path.  Set to null to disable."
         },
         "fetchUserEnv.palEnableSaveEnv": {
           "type": "boolean",

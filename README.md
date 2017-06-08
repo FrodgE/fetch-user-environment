@@ -2,18 +2,19 @@
 
 This extension checks that the development environment has the required settings applied and extensions installed, as determined by a development leader.
 
-Local user settings and installed extensions are compared with those stored at a shared location.  User settings that are incorrect are updated and user settings that are missing are merged, all other settings are unchanged.  Extensions that are missing or old are __*side loaded*__ to allow for management of proprietary extensions that are not available in the marketplace, all other extensions are unchanged.
+Local user settings and installed extensions are compared with those stored at a shared location.  User settings that are incorrect are updated and user settings that are missing are merged, all other settings are unchanged.  Default settings can also be applied if the user has not previously specified them.  Extensions that are missing or old are __*side loaded*__ to allow for management of proprietary extensions that are not available in the marketplace, all other extensions are unchanged.
 
 ## Features
 
 * Updates incorrect and merges missing local user settings
-* Side loads missing or old extensions
+* Updates unchanged local user settings to a default value
+* *Side loads* missing or old extensions
 
 ## Usage
 
 Once configured (see below), upon starting Visual Studio Code this extension will automatically check that all required settings have been applied and that all required extensions have been installed.  The extension can also be run manually through the command pallete.
 
-To compare the current user settings with those at the shared location, open the command pallete and run the following command.  Settings that are incorrect or missing will be updated.
+To compare the current user settings with those at the shared location, open the command pallete and run the following command.  Settings that are incorrect or missing will be updated.  This command will also apply any default settings that have not yet been specified by the user.
 
 ```
 Fetch user environment: Fetch settings
@@ -27,7 +28,7 @@ Fetch user environment: Fetch extensions
 
 ## Configuration
 
-This extension requires that the shared locations to retrieve the settings and extensions are specified.  A prompt requesting the paths to the shared locations will be displayed upon first use.  The paths can also be updated manually.
+This extension requires that the shared locations to retrieve the settings and extensions are specified.  A prompt requesting the paths to the shared locations will be displayed upon the first *manual* use from the command pallete.  The paths can also be updated manually.
 
 For example on a Windows system with a shared network resource mapped to Z drive the configuration may look as follows:
 
@@ -77,6 +78,18 @@ Extensions
 > * __Windows:__ %USERPROFILE%\\.vscode\extensions
 > * __Mac/Linux:__ $HOME/.vscode/extensions
 
+#### Default Settings
+
+The file containing the default settings must be created manually and be stored in the shared location for the settings.  To allow for different default settings for different development teams or users, the filename for the default settings file can be configured.  Leaving the filename as null will disable this feature.  The default settings file must be in JSON format.
+
+For example, the configuration for the default settings file may be look as follows:
+
+```json
+{
+  "fetchUserEnv.remoteDefaultSettingsFilename": "defaultSettings.json"
+}
+```
+
 ## Available Commands
 
 The following commands are available on the command pallete:
@@ -93,6 +106,7 @@ All settings and default values are below.  See above for usage details.
 {
   "fetchUserEnv.remoteSettingsPath": null,
   "fetchUserEnv.remoteExtensionPath": null,
+  "fetchUserEnv.remoteDefaultSettingsFilename": null,
   "fetchUserEnv.palEnableSaveEnv": false
 }
 ```

@@ -25,11 +25,12 @@ function JSONError(message, filename) {
 export async function activate(context: vscode.ExtensionContext) {
     // Get config
     var config = vscode.workspace.getConfiguration("fetchUserEnv");
-    var remoteExt = config.get("remoteExtensionPath");
-    var remoteSet = config.get("remoteSettingsPath");
+    var remoteExtPath = config.get("remoteExtensionPath");
+    var remoteSetPath = config.get("remoteSettingsPath");
+    var remoteDefSetFile = config.get("remoteDefaultSettingsFilename");
 
     // New environment fetcher
-    var environmentFetcher = new FetchEnvironment(remoteExt, remoteSet);
+    var environmentFetcher = new FetchEnvironment(remoteExtPath, remoteSetPath, remoteDefSetFile);
 
     // Register Commands
     let fetchExtDisposable = vscode.commands.registerCommand('fetchUserEnv.extensions', async function() {
@@ -91,13 +92,15 @@ class FetchEnvironment {
     private _remoteExtensionPath : string;
     private _localSettingsPath : string;
     private _remoteSettingsPath : string;
+    private _remoteDefaultSettingsFilename : string;
     
     private _localExtVersions = {};
 
-    constructor(remoteExt, remoteSet) {
-        // Set remote paths
-        this._remoteExtensionPath = remoteExt;
-        this._remoteSettingsPath = remoteSet;
+    constructor(remoteExtPath, remoteSetPath, remoteDefSetFile) {
+        // Set remote paths and filenames
+        this._remoteExtensionPath = remoteExtPath;
+        this._remoteSettingsPath = remoteSetPath;
+        this._remoteDefaultSettingsFilename = remoteDefSetFile;
 
         // Set local paths
         this.getLocalPaths();
@@ -141,6 +144,17 @@ class FetchEnvironment {
         }
     }
 
+    private saveDefaultSettingsFilename(path : string) {
+        this._remoteDefaultSettingsFilename = path;
+
+        try {
+            this.updateSettings({'fetchUserEnv.remoteDefaultSettingsFilename' : this._remoteDefaultSettingsFilename});
+        }
+        catch (err) {
+            throw err;
+        }
+    }
+
     private async getRemoteExtensionPath() {
         var path = await vscode.window.showInputBox({prompt: "Please enter path for remote extensions"});
 
@@ -178,6 +192,7 @@ class FetchEnvironment {
     }
 
     public async fetchExtensions(prompt: boolean) {
+        // Path validation
         if (!this._remoteExtensionPath) {
             if (!prompt) {
                 return;
@@ -195,10 +210,14 @@ class FetchEnvironment {
                     return;
                 }
             }
-
         }
 
         if (!fs.existsSync(this._remoteExtensionPath)) {
+            // Complain
+            vscode.window.showErrorMessage('Cannot access extensions at specified remote path.');
+            console.error('Specified remote extension path \"' + this._remoteExtensionPath + "\" does not exist");
+
+            // Remove invalid config
             try {
                 this.saveRemoteExtensionPath(null);
             }
@@ -210,12 +229,10 @@ class FetchEnvironment {
                 }
             }
 
-            vscode.window.showErrorMessage('Cannot access extensions at specified remote path.');
-            console.error('Specified remote extension path \"' + this._remoteExtensionPath + "\" does not exist");
-
             return;
         }
 
+        // Paths are valid, continue
         // Check versions of installed extensions
         this.getInstalledExtensions();
 
@@ -253,6 +270,7 @@ class FetchEnvironment {
     }
 
     public async fetchSettings(prompt: boolean) {
+        // Path validation
         if (!this._remoteSettingsPath) {
             if (!prompt) {
                 return;
@@ -273,6 +291,11 @@ class FetchEnvironment {
         }
 
         if (!fs.existsSync(path.join(this._remoteSettingsPath, "settings.json"))) {
+            // Complain
+            vscode.window.showErrorMessage('Cannot access settings at specified remote path.');
+            console.error('\"settings.json\" does not exist in specified remote settings path \"' + this._remoteSettingsPath + "\"");
+
+            // Remove invalid config
             try {
                 this.saveRemoteSettingsPath(null);
             }
@@ -284,15 +307,32 @@ class FetchEnvironment {
                 }
             }
 
-            vscode.window.showErrorMessage('Cannot access settings at specified remote path.');
-            console.error('\"settings.json\" does not exist in specified remote settings path \"' + this._remoteSettingsPath + "\"");
-
             return;
         }
 
+        if (this._remoteDefaultSettingsFilename && (!fs.existsSync(path.join(this._remoteSettingsPath, this._remoteDefaultSettingsFilename)))) {
+            // Complain
+            vscode.window.showErrorMessage('Cannot access default settings at specified remote path.');
+            console.error('Default settings file \"' + this._remoteDefaultSettingsFilename + '\" does not exist in specified remote settings path \"' + this._remoteSettingsPath + "\"");
+
+            // Remove invalid config
+            try {
+                this.saveDefaultSettingsFilename(null);
+            }
+            catch (err) {
+                if (err instanceof JSONError) {
+                    // Not great, not the end of the world either.  Prompt but move on.
+                    let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                    vscode.window.showWarningMessage(message);
+                }
+            }
+            // The default settings are optional, no need to quit.
+        }
+
+        // Paths are valid, continue
         try {
             // Compare local settings to remote, update as required
-            if (this.compareRemoteSettings()) {
+            if (this.compareSettings()) {
                 // Settings were updated, reload/restart required
                 let reloadOption = {title: 'Reload'};
                 vscode.window.showInformationMessage('Settings updated, please restart Visual Studio Code or reload window', reloadOption)
@@ -431,24 +471,79 @@ class FetchEnvironment {
         return;
     }
 
-    private compareRemoteSettings() {
-        var remoteSettings;
+    private compareSettings() {
+        var updatedDefault;
+        var updatedRemote;
 
         try {
-            // Read remote settings file
-            // Need to strip comments out...
-            remoteSettings = JSON.parse(stripJsonComments(fs.readFileSync(path.join(this._remoteSettingsPath, "settings.json"), "UTF-8")));
+            updatedDefault = this.compareDefaultSettings();
+            updatedRemote = this.compareRemoteSettings();
         }
         catch (err) {
-            // Invalid JSON data
-            throw new JSONError(err.message, path.join(this._remoteSettingsPath, "settings.json"));
+            throw err;
         }
-        
-        // Filter out settings related to this extension
-        for (let key in remoteSettings) {
-            if (remoteSettings.hasOwnProperty(key) && key.startsWith("fetchUserEnv")) {
-                delete remoteSettings[key];
+
+        return updatedDefault || updatedRemote;
+    }
+
+    private compareDefaultSettings() {
+        // Has a file containing optional defaults been configured?
+        if (!this._remoteDefaultSettingsFilename) {
+            // Nope, nothing to do.  We're done here.
+            return false;
+        }
+
+        try {
+            // Read default settings file
+            var defaultSettings = this.readSettingsFile(path.join(this._remoteSettingsPath, this._remoteDefaultSettingsFilename));
+        }
+        catch (err) {
+            throw err;
+        }
+
+        // Local settings
+        try {
+            // Read local settings file so default settings can be merged and saved
+            var localSettings = this.readSettingsFile(path.join(this._localSettingsPath, "settings.json"));
+        }
+        catch (err) {
+            throw err;
+        }
+
+        var updated: boolean = false;
+        var newSettings = {};
+
+        for (let prop in defaultSettings) {
+            if (!localSettings.hasOwnProperty(prop)) {
+                newSettings[prop] = defaultSettings[prop];
+                updated = true;
             }
+        }
+
+        if (updated) {
+            // New settings were found
+            let logStr = JSON.stringify(newSettings, null, 2);
+            console.log("Adding default config parameters");
+            console.log(logStr);
+
+            try {
+                // Save settings
+                this.updateSettings(newSettings);
+            }
+            catch (err) {
+                throw err;
+            }
+        }
+        return updated;
+    }
+
+    private compareRemoteSettings() {
+        try {
+            // Read remote settings file
+            var remoteSettings = this.readSettingsFile(path.join(this._remoteSettingsPath, "settings.json"));
+        }
+        catch (err) {
+            throw err;
         }
 
         // Local environment settings
@@ -474,17 +569,19 @@ class FetchEnvironment {
                     Object.assign(newSettings, res);
                     updated = true;
                     
-                    let logStr = JSON.stringify(res, null, 2);
-                    console.log("Updating config parameter");
-                    console.log(logStr);
                     break;
                 }
             }
         }
 
         if (updated) {
+            // New settings were found
+            let logStr = JSON.stringify(newSettings, null, 2);
+            console.log("Updating config parameters");
+            console.log(logStr);
+
             try {
-                // New settings were found
+                // Save settings
                 this.updateSettings(newSettings);
             }
             catch (err) {
@@ -499,8 +596,7 @@ class FetchEnvironment {
         // Are there nested items that need to be added?
         for (let prop in compare) {
             if ((typeof(base[prop]) === "undefined")    // Property value within the initial base object is queried from the current environment and consequently may not actually exist.
-                || (!base.hasOwnProperty(prop)))
-            {
+                || (!base.hasOwnProperty(prop))) {
                 // No need to keep searching
                 return compare;
             }
@@ -602,22 +698,13 @@ class FetchEnvironment {
     }
 
     private copyEnvToRemote() {
-        var localSettings;
-
         try {
             // Copy settings
-            // Read local settings file so it can be filtered and saved
-            // Need to strip comments out...
-            localSettings = JSON.parse(stripJsonComments(fs.readFileSync(path.join(this._localSettingsPath, "settings.json"), "UTF-8")));
-        } catch (err) {
-            throw new JSONError(err.message, path.join(this._localSettingsPath, "settings.json"));
+            // Read and filter local settings file so it can be saved
+            var localSettings = this.readSettingsFile(path.join(this._localSettingsPath, "settings.json"));
         }
-        
-        // Filter out settings related to this extension
-        for (let key in localSettings) {
-            if (localSettings.hasOwnProperty(key) && key.startsWith("fetchUserEnv")) {
-                delete localSettings[key];
-            }
+        catch (err) {
+            throw err;
         }
 
         // Save to remote
@@ -644,6 +731,29 @@ class FetchEnvironment {
         }
     }
 
+    private readSettingsFile(filePath: string, filter: boolean = true) {
+        try {
+            // Read settings file
+            // Need to strip comments out...
+            var settingsFile = JSON.parse(stripJsonComments(fs.readFileSync(filePath, "UTF-8")));
+        }
+        catch (err) {
+            // Invalid JSON data
+            throw new JSONError(err.message, filePath);
+        }
+
+        if (filter) {
+            // Filter out settings related to this extension
+            for (let prop in settingsFile) {
+                if (settingsFile.hasOwnProperty(prop) && prop.startsWith("fetchUserEnv")) {
+                    delete settingsFile[prop];
+                }
+            }
+        }
+
+        return settingsFile;
+    }
+
     private updateSettings(newSettings: {}) {
         var localSettings = {};
         var localSettingsFile = path.join(this._localSettingsPath, "settings.json");
@@ -652,11 +762,11 @@ class FetchEnvironment {
         if (fs.existsSync(localSettingsFile)) {
             try {
                 // It exists!  Read local settings file so new settings can be merged and saved
-                // Need to strip comments out...
-                localSettings = JSON.parse(stripJsonComments(fs.readFileSync(localSettingsFile, "UTF-8")));
+                // Don't filter out settings related to this extension
+                localSettings = this.readSettingsFile(localSettingsFile, false);
             }
             catch (err) {
-                throw new JSONError(err.message, localSettingsFile);
+                throw err;
             }
         }
 
