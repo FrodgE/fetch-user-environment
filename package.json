@@ -84,7 +84,7 @@
         "fetchUserEnv.palEnableSaveEnv": {
           "type": "boolean",
           "default": false,
-          "description": "Enable command pallete item to \"Save user environment\"."
+          "description": "Enable command palette item to \"Save user environment\"."
         }
       }
     }

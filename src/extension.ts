@@ -24,10 +24,10 @@ function JSONError(message, filename) {
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
     // Get config
-    var config = vscode.workspace.getConfiguration("fetchUserEnv");
-    var remoteExtPath = config.get("remoteExtensionPath");
-    var remoteSetPath = config.get("remoteSettingsPath");
-    var remoteDefSetFile = config.get("remoteDefaultSettingsFilename");
+    var config = vscode.workspace.getConfiguration('fetchUserEnv');
+    var remoteExtPath = config.get('remoteExtensionPath');
+    var remoteSetPath = config.get('remoteSettingsPath');
+    var remoteDefSetFile = config.get('remoteDefaultSettingsFilename');
 
     // New environment fetcher
     var environmentFetcher = new FetchEnvironment(remoteExtPath, remoteSetPath, remoteDefSetFile);
@@ -37,7 +37,7 @@ export async function activate(context: vscode.ExtensionContext) {
         try {
             await environmentFetcher.fetchExtensions(true);
         } catch (err) {
-            vscode.window.showErrorMessage("Failed to fetch extensions.");
+            vscode.window.showErrorMessage('Failed to fetch extensions.');
             console.error(err);
         }
     });
@@ -46,7 +46,7 @@ export async function activate(context: vscode.ExtensionContext) {
         try {
             await environmentFetcher.fetchSettings(true);
         } catch (err) {
-            vscode.window.showErrorMessage("Failed to fetch settings.");
+            vscode.window.showErrorMessage('Failed to fetch settings.');
             console.error(err);
         }
     });
@@ -55,7 +55,7 @@ export async function activate(context: vscode.ExtensionContext) {
         try {
             await environmentFetcher.saveEnvironment();
         } catch (err) {
-            vscode.window.showErrorMessage("Failed to save environment.");
+            vscode.window.showErrorMessage('Failed to save environment.');
             console.error(err);
         }
     });
@@ -70,7 +70,7 @@ export async function activate(context: vscode.ExtensionContext) {
     try {
         await environmentFetcher.fetchExtensions(false);
     } catch (err) {
-        vscode.window.showErrorMessage("Failed to fetch extensions.");
+        vscode.window.showErrorMessage('Failed to fetch extensions.');
         console.error(err);
     }
 
@@ -78,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
     try {
         await environmentFetcher.fetchSettings(false);
     } catch (err) {
-        vscode.window.showErrorMessage("Failed to fetch settings.");
+        vscode.window.showErrorMessage('Failed to fetch settings.');
         console.error(err);
     }
 }
@@ -108,17 +108,17 @@ class FetchEnvironment {
 
     private getLocalPaths() {
         // Path of installed extensions
-        this._localExtensionPath = path.join(os.homedir(), ".vscode", "extensions");
+        this._localExtensionPath = path.join(os.homedir(), '.vscode', 'extensions');
 
         // Path of environment settings
-        if (os.platform() === "win32") {
-            this._localSettingsPath = path.join(process.env.APPDATA, "Code", "User");
+        if (os.platform() === 'win32') {
+            this._localSettingsPath = path.join(process.env.APPDATA, 'Code', 'User');
         }
-        if (os.platform() === "darwin") {
-            this._localSettingsPath = path.join(os.homedir(), "Library", "Application Support", "Code", "User");
+        if (os.platform() === 'darwin') {
+            this._localSettingsPath = path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User');
         }
-        if (os.platform() === "linux") {
-            this._localSettingsPath = path.join(os.homedir(), ".config", "Code", "User");
+        if (os.platform() === 'linux') {
+            this._localSettingsPath = path.join(os.homedir(), '.config', 'Code', 'User');
         }
     }
 
@@ -156,7 +156,7 @@ class FetchEnvironment {
     }
 
     private async getRemoteExtensionPath() {
-        var path = await vscode.window.showInputBox({prompt: "Please enter path for remote extensions"});
+        var path = await vscode.window.showInputBox({prompt: 'Please enter path for remote extensions'});
 
         if (!path) {
             vscode.window.showWarningMessage('Path for remote extensions not specified, operation cancelled.');
@@ -174,7 +174,7 @@ class FetchEnvironment {
     }
 
     private async getRemoteSettingsPath() {
-        var path = await vscode.window.showInputBox({prompt: "Please enter path for remote settings"});
+        var path = await vscode.window.showInputBox({prompt: 'Please enter path for remote settings'});
 
         if (!path) {
             vscode.window.showWarningMessage('Path for remote settings not specified, operation cancelled.');
@@ -205,7 +205,7 @@ class FetchEnvironment {
             }
             catch (err) {
                 if (err instanceof JSONError) {
-                    let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                     vscode.window.showErrorMessage(message);
                     return;
                 }
@@ -215,7 +215,7 @@ class FetchEnvironment {
         if (!fs.existsSync(this._remoteExtensionPath)) {
             // Complain
             vscode.window.showErrorMessage('Cannot access extensions at specified remote path.');
-            console.error('Specified remote extension path \"' + this._remoteExtensionPath + "\" does not exist");
+            console.error('Specified remote extension path "' + this._remoteExtensionPath + '" does not exist');
 
             // Remove invalid config
             try {
@@ -224,7 +224,7 @@ class FetchEnvironment {
             catch (err) {
                 if (err instanceof JSONError) {
                     // Not great, not the end of the world either.  Prompt but move on.
-                    let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                     vscode.window.showWarningMessage(message);
                 }
             }
@@ -257,11 +257,11 @@ class FetchEnvironment {
         }
         catch (err) {
             if (err instanceof JSONError) {
-                let message = "Error detected in extension package file: \"" + err.filename + "\", " + err.message;
+                let message = 'Error detected in extension package file: "' + err.filename + '", ' + err.message;
                 vscode.window.showErrorMessage(message);
             }
             else {
-                vscode.window.showErrorMessage("Failed to fetch extensions.");
+                vscode.window.showErrorMessage('Failed to fetch extensions.');
             }
             console.error(err);
         }
@@ -283,17 +283,17 @@ class FetchEnvironment {
             }
             catch (err) {
                 if (err instanceof JSONError) {
-                    let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                     vscode.window.showErrorMessage(message);
                     return;
                 }
             }
         }
 
-        if (!fs.existsSync(path.join(this._remoteSettingsPath, "settings.json"))) {
+        if (!fs.existsSync(path.join(this._remoteSettingsPath, 'settings.json'))) {
             // Complain
             vscode.window.showErrorMessage('Cannot access settings at specified remote path.');
-            console.error('\"settings.json\" does not exist in specified remote settings path \"' + this._remoteSettingsPath + "\"");
+            console.error('"settings.json" does not exist in specified remote settings path "' + this._remoteSettingsPath + '"');
 
             // Remove invalid config
             try {
@@ -302,7 +302,7 @@ class FetchEnvironment {
             catch (err) {
                 if (err instanceof JSONError) {
                     // Not great, not the end of the world either.  Prompt but move on.
-                    let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                     vscode.window.showWarningMessage(message);
                 }
             }
@@ -313,7 +313,7 @@ class FetchEnvironment {
         if (this._remoteDefaultSettingsFilename && (!fs.existsSync(path.join(this._remoteSettingsPath, this._remoteDefaultSettingsFilename)))) {
             // Complain
             vscode.window.showErrorMessage('Cannot access default settings at specified remote path.');
-            console.error('Default settings file \"' + this._remoteDefaultSettingsFilename + '\" does not exist in specified remote settings path \"' + this._remoteSettingsPath + "\"");
+            console.error('Default settings file "' + this._remoteDefaultSettingsFilename + '" does not exist in specified remote settings path "' + this._remoteSettingsPath + '"');
 
             // Remove invalid config
             try {
@@ -322,7 +322,7 @@ class FetchEnvironment {
             catch (err) {
                 if (err instanceof JSONError) {
                     // Not great, not the end of the world either.  Prompt but move on.
-                    let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                     vscode.window.showWarningMessage(message);
                 }
             }
@@ -351,11 +351,11 @@ class FetchEnvironment {
         }
         catch (err) {
             if (err instanceof JSONError) {
-                let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                 vscode.window.showErrorMessage(message);
             }
             else {
-                vscode.window.showErrorMessage("Failed to fetch settings.");
+                vscode.window.showErrorMessage('Failed to fetch settings.');
             }
             console.error(err);
         }
@@ -373,7 +373,7 @@ class FetchEnvironment {
         }
         catch (err) {
             if (err instanceof JSONError) {
-                let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                 vscode.window.showErrorMessage(message);
                 return;
             }
@@ -388,7 +388,7 @@ class FetchEnvironment {
         }
         catch (err) {
             if (err instanceof JSONError) {
-                let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                 vscode.window.showErrorMessage(message);
                 return;
             }
@@ -411,7 +411,7 @@ class FetchEnvironment {
         var settingsPath: string;
         var extensionPath: string;
 
-        if (os.platform() === "win32") {
+        if (os.platform() === 'win32') {
             // Windows is case preserving, case insensitive
             // Convert to lowercase
             settingsPath = String(this._remoteSettingsPath).toLowerCase();
@@ -446,23 +446,23 @@ class FetchEnvironment {
         }
         catch (err) {
             if (err instanceof JSONError) {
-                let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                 vscode.window.showErrorMessage(message);
             }
             else {
-                vscode.window.showErrorMessage("Failed to save environment.");
+                vscode.window.showErrorMessage('Failed to save environment.');
             }
             console.error(err);
         }
 
         try {
-            // Hide command pallete menu item
+            // Hide command palette menu item
             this.updateSettings({'fetchUserEnv.palEnableSaveEnv' : false});
         }
         catch (err) {
             if (err instanceof JSONError) {
                 // Not great, not the end of the world either.  Prompt but move on.
-                let message = "Error detected in configuration file: \"" + err.filename + "\", " + err.message;
+                let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
                 vscode.window.showWarningMessage(message);
             }
         }
@@ -504,7 +504,7 @@ class FetchEnvironment {
         // Local settings
         try {
             // Read local settings file so default settings can be merged and saved
-            var localSettings = this.readSettingsFile(path.join(this._localSettingsPath, "settings.json"));
+            var localSettings = this.readSettingsFile(path.join(this._localSettingsPath, 'settings.json'));
         }
         catch (err) {
             throw err;
@@ -523,7 +523,7 @@ class FetchEnvironment {
         if (updated) {
             // New settings were found
             let logStr = JSON.stringify(newSettings, null, 2);
-            console.log("Adding default config parameters");
+            console.log('Adding default config parameters');
             console.log(logStr);
 
             try {
@@ -540,7 +540,7 @@ class FetchEnvironment {
     private compareRemoteSettings() {
         try {
             // Read remote settings file
-            var remoteSettings = this.readSettingsFile(path.join(this._remoteSettingsPath, "settings.json"));
+            var remoteSettings = this.readSettingsFile(path.join(this._remoteSettingsPath, 'settings.json'));
         }
         catch (err) {
             throw err;
@@ -577,7 +577,7 @@ class FetchEnvironment {
         if (updated) {
             // New settings were found
             let logStr = JSON.stringify(newSettings, null, 2);
-            console.log("Updating config parameters");
+            console.log('Updating config parameters');
             console.log(logStr);
 
             try {
@@ -595,7 +595,7 @@ class FetchEnvironment {
         // Quick wins, look for items that have been added or removed
         // Are there nested items that need to be added?
         for (let prop in compare) {
-            if ((typeof(base[prop]) === "undefined")    // Property value within the initial base object is queried from the current environment and consequently may not actually exist.
+            if ((typeof(base[prop]) === 'undefined')    // Property value within the initial base object is queried from the current environment and consequently may not actually exist.
                 || (!base.hasOwnProperty(prop))) {
                 // No need to keep searching
                 return compare;
@@ -603,7 +603,7 @@ class FetchEnvironment {
         }
         // Are there nested items in the baseline that need to be removed?
         for (let prop in base) {
-            if ((typeof(compare[prop]) === "undefined") // Should be redundant but keep for consistency
+            if ((typeof(compare[prop]) === 'undefined') // Should be redundant but keep for consistency
                 || (!compare.hasOwnProperty(prop))) {
                 // No need to keep searching
                 return compare;
@@ -613,7 +613,7 @@ class FetchEnvironment {
         // Compare each item
         for (let prop in compare) {
             // Check if we need to dig deeper...
-            if (typeof(compare[prop]) === "object") {
+            if (typeof(compare[prop]) === 'object') {
                 let diff = this.compareUpdate(base[prop] , compare[prop]);
 
                 // Check if differences were found
@@ -644,7 +644,7 @@ class FetchEnvironment {
         
         // Query the version of each installed extension
         for (let ext in localExtensions) {
-            this._localExtVersions[localExtensions[ext].id] = localExtensions[ext].packageJSON["version"];
+            this._localExtVersions[localExtensions[ext].id] = localExtensions[ext].packageJSON['version'];
         }
     }
 
@@ -656,7 +656,7 @@ class FetchEnvironment {
         var updated: boolean = false;
 
         for (let folder in folders) {
-            let packageFile = path.join(this._remoteExtensionPath, folders[folder], "package.json");
+            let packageFile = path.join(this._remoteExtensionPath, folders[folder], 'package.json');
 
             if (!fs.existsSync(packageFile)) {
                 // Not a valid extension directory, skip
@@ -667,16 +667,16 @@ class FetchEnvironment {
             let json_file;
 
             try {
-                json_file = JSON.parse(fs.readFileSync(packageFile, "UTF-8"));
+                json_file = JSON.parse(fs.readFileSync(packageFile, 'UTF-8'));
             }
             catch (err) {
                 throw new JSONError(err.message, packageFile);
             }
 
-            let id = json_file["publisher"] + "." + json_file["name"];
-            let version = json_file["version"];
+            let id = json_file['publisher'] + '.' + json_file['name'];
+            let version = json_file['version'];
 
-            if (typeof this._localExtVersions[id] !== "undefined") {
+            if (typeof this._localExtVersions[id] !== 'undefined') {
                 if (compareVer(this._localExtVersions[id], version) >= 0) {
                     // Correct version, move along
                     continue;
@@ -685,9 +685,9 @@ class FetchEnvironment {
 
             // Missing or old version, copy from remote source.
             // No need to remove old version, VS Code will do that automatically upon restart
-            console.log("Updating extension \"" + id + "\" to version " + version);
+            console.log('Updating extension "' + id + '" to version ' + version);
             let srcPath = path.join(this._remoteExtensionPath, folders[folder]);
-            let dstPath = path.join(this._localExtensionPath, id + "-" + version);
+            let dstPath = path.join(this._localExtensionPath, id + '-' + version);
             fse.copy(srcPath, dstPath, function (err) {
                 if (err) return console.error(err);
             });
@@ -701,7 +701,7 @@ class FetchEnvironment {
         try {
             // Copy settings
             // Read and filter local settings file so it can be saved
-            var localSettings = this.readSettingsFile(path.join(this._localSettingsPath, "settings.json"));
+            var localSettings = this.readSettingsFile(path.join(this._localSettingsPath, 'settings.json'));
         }
         catch (err) {
             throw err;
@@ -709,7 +709,7 @@ class FetchEnvironment {
 
         // Save to remote
         var remoteSettingsJSON = JSON.stringify(localSettings, null, 2);
-        fs.writeFileSync(path.join(this._remoteSettingsPath, "settings.json"), remoteSettingsJSON, "UTF-8");
+        fs.writeFileSync(path.join(this._remoteSettingsPath, 'settings.json'), remoteSettingsJSON, 'UTF-8');
 
         // Copy extensions
         // Get all extensions and filter for those installed by the user
@@ -719,7 +719,7 @@ class FetchEnvironment {
 
         // Filter out this extension!
         localExtensions = localExtensions.filter(ext => {
-            return !ext.extensionPath.includes("fetch-user-environment");
+            return !ext.extensionPath.includes('fetch-user-environment');
         });
 
         for (let ext in localExtensions) {
@@ -735,7 +735,7 @@ class FetchEnvironment {
         try {
             // Read settings file
             // Need to strip comments out...
-            var settingsFile = JSON.parse(stripJsonComments(fs.readFileSync(filePath, "UTF-8")));
+            var settingsFile = JSON.parse(stripJsonComments(fs.readFileSync(filePath, 'UTF-8')));
         }
         catch (err) {
             // Invalid JSON data
@@ -745,7 +745,7 @@ class FetchEnvironment {
         if (filter) {
             // Filter out settings related to this extension
             for (let prop in settingsFile) {
-                if (settingsFile.hasOwnProperty(prop) && prop.startsWith("fetchUserEnv")) {
+                if (settingsFile.hasOwnProperty(prop) && prop.startsWith('fetchUserEnv')) {
                     delete settingsFile[prop];
                 }
             }
@@ -756,7 +756,7 @@ class FetchEnvironment {
 
     private updateSettings(newSettings: {}) {
         var localSettings = {};
-        var localSettingsFile = path.join(this._localSettingsPath, "settings.json");
+        var localSettingsFile = path.join(this._localSettingsPath, 'settings.json');
 
         // Does the local settings file exist yet?
         if (fs.existsSync(localSettingsFile)) {
@@ -775,7 +775,7 @@ class FetchEnvironment {
 
         // Save back to disk (creating the local settings file if required)
         var localSettingsJSON = JSON.stringify(localSettings, null, 2);
-        fs.writeFileSync(localSettingsFile, localSettingsJSON, "UTF-8");
+        fs.writeFileSync(localSettingsFile, localSettingsJSON, 'UTF-8');
     }
 
     dispose() {}
