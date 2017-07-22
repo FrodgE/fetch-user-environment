@@ -156,7 +156,16 @@ class FetchEnvironment {
     }
 
     private async getRemoteExtensionPath() {
-        var path = await vscode.window.showInputBox({prompt: 'Please enter path for remote extensions'});
+        let value = '';
+        if (this._remoteExtensionPath) {
+            value = this._remoteExtensionPath;
+        }
+
+        let options = {prompt: 'Please enter path for remote extensions',
+                    ignoreFocusOut: true,
+                    value: value};
+
+        var path = await vscode.window.showInputBox(options);
 
         if (!path) {
             vscode.window.showWarningMessage('Path for remote extensions not specified, operation cancelled.');
@@ -174,7 +183,16 @@ class FetchEnvironment {
     }
 
     private async getRemoteSettingsPath() {
-        var path = await vscode.window.showInputBox({prompt: 'Please enter path for remote settings'});
+        let value = '';
+        if (this._remoteSettingsPath) {
+            value = this._remoteSettingsPath;
+        }
+
+        let options = {prompt: 'Please enter path for remote settings',
+                    ignoreFocusOut: true,
+                    value: value};
+
+        var path = await vscode.window.showInputBox(options);
 
         if (!path) {
             vscode.window.showWarningMessage('Path for remote settings not specified, operation cancelled.');
@@ -191,45 +209,85 @@ class FetchEnvironment {
         return true;
     }
 
-    public async fetchExtensions(prompt: boolean) {
-        // Path validation
-        if (!this._remoteExtensionPath) {
-            if (!prompt) {
-                return;
-            }
-
-            try {
-                if (!await this.getRemoteExtensionPath()) {
-                    return;
-                }
-            }
-            catch (err) {
-                if (err instanceof JSONError) {
-                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
-                    vscode.window.showErrorMessage(message);
-                    return;
-                }
-            }
+    private async getDefaultSettingsFilename() {
+        let value = '';
+        if (this._remoteDefaultSettingsFilename) {
+            value = this._remoteDefaultSettingsFilename;
         }
 
-        if (!fs.existsSync(this._remoteExtensionPath)) {
-            // Complain
-            vscode.window.showErrorMessage('Cannot access extensions at specified remote path.');
-            console.error('Specified remote extension path "' + this._remoteExtensionPath + '" does not exist');
+        let options = {prompt: 'Please enter default settings filename.',
+                    ignoreFocusOut: true,
+                    value: value};
 
-            // Remove invalid config
-            try {
-                this.saveRemoteExtensionPath(null);
-            }
-            catch (err) {
-                if (err instanceof JSONError) {
-                    // Not great, not the end of the world either.  Prompt but move on.
-                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
-                    vscode.window.showWarningMessage(message);
+        var filename = await vscode.window.showInputBox(options);
+
+        if (!filename) {
+            vscode.window.showWarningMessage('Filename for the default settings not specified, operation cancelled.');
+            return false;
+        }
+
+        try {
+            this.saveDefaultSettingsFilename(filename);
+        }
+        catch (err) {
+            throw err;
+        }
+
+        return true;
+    }
+
+    public async fetchExtensions(prompt: boolean) {
+        // Path validation
+        let unconfirmed = true;
+        let reenter = false;
+        while (unconfirmed) {
+            if (!this._remoteExtensionPath || reenter) {
+                if (!prompt && !reenter) {
+                    return;
+                }
+
+                reenter = false;
+
+                try {
+                    if (!await this.getRemoteExtensionPath()) {
+                        return;
+                    }
+                }
+                catch (err) {
+                    if (err instanceof JSONError) {
+                        let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
+                        vscode.window.showErrorMessage(message);
+                        return;
+                    }
                 }
             }
 
-            return;
+            unconfirmed = !fs.existsSync(this._remoteExtensionPath);
+
+            if (unconfirmed) {
+                // Complain
+                console.error('Specified remote extension path "' + this._remoteExtensionPath + '" does not exist');
+                let pathAgainOption = {title: 'Try Again'};
+                let pathReenterOption = {title: 'Reenter Path'};
+                let pathIgnoreOption = {title: 'Ignore', isCloseAffordance: true};
+                if (!await vscode.window.showErrorMessage('Cannot access extensions at specified remote path.', pathAgainOption, pathReenterOption, pathIgnoreOption)
+                    .then(choice => {
+                        switch (choice) {
+                            case pathAgainOption:
+                                break;
+                            case pathReenterOption:
+                                reenter = true;
+                                break;
+                            case pathIgnoreOption:
+                                // Use default case and just exit
+                            default:
+                                return false;
+                        }
+                        return true;
+                    })) {
+                    return;
+                }
+            }
         }
 
         // Paths are valid, continue
@@ -271,62 +329,128 @@ class FetchEnvironment {
 
     public async fetchSettings(prompt: boolean) {
         // Path validation
-        if (!this._remoteSettingsPath) {
-            if (!prompt) {
-                return;
-            }
-
-            try {
-                if (!await this.getRemoteSettingsPath()) {
+        let unconfirmed = true;
+        let reenter = false;
+        while (unconfirmed) {
+            if (!this._remoteSettingsPath || reenter) {
+                if (!prompt && !reenter) {
                     return;
                 }
+
+                reenter = false;
+
+                try {
+                    if (!await this.getRemoteSettingsPath()) {
+                        return;
+                    }
+                }
+                catch (err) {
+                    if (err instanceof JSONError) {
+                        let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
+                        vscode.window.showErrorMessage(message);
+                        return;
+                    }
+                }
             }
-            catch (err) {
-                if (err instanceof JSONError) {
-                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
-                    vscode.window.showErrorMessage(message);
+
+            unconfirmed = !fs.existsSync(path.join(this._remoteSettingsPath, 'settings.json'));
+
+            if (unconfirmed) {
+                // Complain
+                console.error('"settings.json" does not exist in specified remote settings path "' + this._remoteSettingsPath + '"');
+                let pathAgainOption = {title: 'Try Again'};
+                let pathReenterOption = {title: 'Reenter Path'};
+                let pathIgnoreOption = {title: 'Ignore', isCloseAffordance: true};
+                if (!await vscode.window.showErrorMessage('Cannot access settings at specified remote path.', pathAgainOption, pathReenterOption, pathIgnoreOption)
+                    .then(choice => {
+                        switch (choice) {
+                            case pathAgainOption:
+                                break;
+                            case pathReenterOption:
+                                reenter = true;
+                                break;
+                            case pathIgnoreOption:
+                                // Use default case and just exit
+                            default:
+                                return false;
+                        }
+                        return true;
+                    })) {
                     return;
                 }
             }
         }
 
-        if (!fs.existsSync(path.join(this._remoteSettingsPath, 'settings.json'))) {
-            // Complain
-            vscode.window.showErrorMessage('Cannot access settings at specified remote path.');
-            console.error('"settings.json" does not exist in specified remote settings path "' + this._remoteSettingsPath + '"');
+        unconfirmed = true;
+        reenter = false;
+        let disable = false;
+        while (unconfirmed)
+        {
+            unconfirmed = this._remoteDefaultSettingsFilename && (!fs.existsSync(path.join(this._remoteSettingsPath, this._remoteDefaultSettingsFilename)));
 
-            // Remove invalid config
-            try {
-                this.saveRemoteSettingsPath(null);
+            if (unconfirmed) {
+                // Complain
+                console.error('Default settings file "' + this._remoteDefaultSettingsFilename + '" does not exist in specified remote settings path "' + this._remoteSettingsPath + '"');
+                let defSetAgainOption = {title: 'Try Again'};
+                let defSetReenterOption = {title: 'Reenter Filename'};
+                let defSetIgnoreOption = {title: 'Ignore', isCloseAffordance: true};
+                let defSetDisableOption = {title: 'Disable'};
+                await vscode.window.showErrorMessage('Cannot access default settings at specified remote path.', defSetAgainOption, defSetReenterOption, defSetIgnoreOption, defSetDisableOption)
+                    .then(choice => {
+                        switch (choice) {
+                            case defSetAgainOption:
+                                break;
+                            case defSetReenterOption:
+                                reenter = true;
+                                break;
+                            case defSetDisableOption:
+                                disable = true;
+                                // The default settings are optional, no need to quit.
+                                unconfirmed = false;
+                                break;
+                            case defSetIgnoreOption:
+                                // Temporarily disable the default settings for the duration of the session
+                                this._remoteDefaultSettingsFilename = null;
+                                // Continue on to default...
+                            default:
+                                // The default settings are optional, no need to quit.
+                                unconfirmed = false;
+                                break;
+                        }
+                    });
             }
-            catch (err) {
-                if (err instanceof JSONError) {
-                    // Not great, not the end of the world either.  Prompt but move on.
-                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
-                    vscode.window.showWarningMessage(message);
+
+            if (reenter) {
+                reenter = false;
+
+                try {
+                    // The default settings are optional, no need to quit if filename entry is aborted.
+                    await this.getDefaultSettingsFilename();
+                }
+                catch (err) {
+                    if (err instanceof JSONError) {
+                        let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
+                        vscode.window.showErrorMessage(message);
+                        return;
+                    }
                 }
             }
 
-            return;
-        }
+            if (disable) {
+                disable = false;
 
-        if (this._remoteDefaultSettingsFilename && (!fs.existsSync(path.join(this._remoteSettingsPath, this._remoteDefaultSettingsFilename)))) {
-            // Complain
-            vscode.window.showErrorMessage('Cannot access default settings at specified remote path.');
-            console.error('Default settings file "' + this._remoteDefaultSettingsFilename + '" does not exist in specified remote settings path "' + this._remoteSettingsPath + '"');
-
-            // Remove invalid config
-            try {
-                this.saveDefaultSettingsFilename(null);
-            }
-            catch (err) {
-                if (err instanceof JSONError) {
-                    // Not great, not the end of the world either.  Prompt but move on.
-                    let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
-                    vscode.window.showWarningMessage(message);
+                try {
+                    // Remove invalid config
+                    this.saveDefaultSettingsFilename(null);
+                }
+                catch (err) {
+                    if (err instanceof JSONError) {
+                        // Not great, not the end of the world either.  Prompt but move on.
+                        let message = 'Error detected in configuration file: "' + err.filename + '", ' + err.message;
+                        vscode.window.showWarningMessage(message);
+                    }
                 }
             }
-            // The default settings are optional, no need to quit.
         }
 
         // Paths are valid, continue
@@ -709,7 +833,7 @@ class FetchEnvironment {
 
         // Save to remote
         var remoteSettingsJSON = JSON.stringify(localSettings, null, 2);
-        fs.writeFileSync(path.join(this._remoteSettingsPath, 'settings.json'), remoteSettingsJSON, 'UTF-8');
+        fs.writeFileSync(path.join(this._remoteSettingsPath, 'settings.json'), remoteSettingsJSON, {encoding: 'UTF-8'});
 
         // Copy extensions
         // Get all extensions and filter for those installed by the user
@@ -775,7 +899,7 @@ class FetchEnvironment {
 
         // Save back to disk (creating the local settings file if required)
         var localSettingsJSON = JSON.stringify(localSettings, null, 2);
-        fs.writeFileSync(localSettingsFile, localSettingsJSON, 'UTF-8');
+        fs.writeFileSync(localSettingsFile, localSettingsJSON, {encoding: 'UTF-8'});
     }
 
     dispose() {}

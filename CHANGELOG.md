@@ -4,7 +4,7 @@ All notable changes to the "fetch-user-environment" extension will be documented
 
 ## [Unreleased]
 
-- N/A
+- Prompt if unable to access remote data
 
 ## [1.1.0] - 2017-06-09
 
