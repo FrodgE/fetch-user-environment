@@ -645,9 +645,8 @@ class FetchEnvironment {
             throw err;
         }
 
-        // Local settings
         try {
-            // Read local settings file so default settings can be merged and saved
+            // Read local settings file (therefore ignoring the workspace) so default settings can be compared
             var localSettings = this.readSettingsFile(path.join(this._localSettingsPath, 'settings.json'));
         }
         catch (err) {
@@ -658,6 +657,7 @@ class FetchEnvironment {
         var newSettings = {};
 
         for (let prop in defaultSettings) {
+            // Only add settings that are missing, ignore existing settings even if they are different
             if (!localSettings.hasOwnProperty(prop)) {
                 newSettings[prop] = defaultSettings[prop];
                 updated = true;
@@ -693,8 +693,13 @@ class FetchEnvironment {
             throw err;
         }
 
-        // Local environment settings
-        var localEnvironment = vscode.workspace.getConfiguration();
+        try {
+            // Read local settings file (therefore ignoring the workspace) so remote settings can be compared
+            var localSettings = this.readSettingsFile(path.join(this._localSettingsPath, 'settings.json'));
+        }
+        catch (err) {
+            throw err;
+        }
 
         var updated: boolean = false;
         var newSettings = {};
@@ -703,7 +708,7 @@ class FetchEnvironment {
             let base = {};
             let compare = {};
             
-            base[prop] = localEnvironment.get(prop);
+            base[prop] = localSettings[prop];
             compare[prop] = remoteSettings[prop];
             
             // Returned object will have no properties if base & compare are the same

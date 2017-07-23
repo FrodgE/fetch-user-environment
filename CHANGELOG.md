@@ -4,8 +4,13 @@ All notable changes to the "fetch-user-environment" extension will be documented
 
 ## [Unreleased]
 
+- N/A
+
+## [1.1.1] - 2017-07-24
+
 - Prompt if unable to access remote data
 - Log activity to output channel
+- Fix repeated prompt to reload the session if a workspace setting overrides a "remote" user setting (#3)
 
 ## [1.1.0] - 2017-06-09
 

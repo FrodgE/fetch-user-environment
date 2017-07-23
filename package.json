@@ -2,7 +2,7 @@
   "name": "fetch-user-environment",
   "displayName": "Fetch User Environment",
   "description": "Fetch and side load extensions and user settings from a shared location.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "icon": "images/fetch.png",
   "publisher": "michaelnewton",
   "repository": {
