@@ -5,6 +5,7 @@ All notable changes to the "fetch-user-environment" extension will be documented
 ## [Unreleased]
 
 - Prompt if unable to access remote data
+- Log activity to output channel
 
 ## [1.1.0] - 2017-06-09
 

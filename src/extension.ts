@@ -20,6 +20,9 @@ function JSONError(message, filename) {
     this.stack = (new Error()).stack;
 }
 
+// Output messages
+const fetchMsgChannel = vscode.window.createOutputChannel('Fetch User Environment');
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
@@ -64,6 +67,9 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(fetchExtDisposable,
                                 fetchSetDisposable,
                                 saveEnvDisposable);
+
+    // Clear messages
+    fetchMsgChannel.clear();
 
     // Run automatically on start up.  Don't prompt the user if paths aren't configured.
     // Fetch extensions
@@ -240,6 +246,12 @@ class FetchEnvironment {
         // Path validation
         let unconfirmed = true;
         let reenter = false;
+
+        if (prompt) {
+            // Clear messages
+            fetchMsgChannel.clear();
+        }
+
         while (unconfirmed) {
             if (!this._remoteExtensionPath || reenter) {
                 if (!prompt && !reenter) {
@@ -311,6 +323,7 @@ class FetchEnvironment {
                     vscode.window.showInformationMessage('Extensions are up to date');
                 }
                 console.log('No updated extensions found.');
+                fetchMsgChannel.appendLine('No updated extensions found.');
             }
         }
         catch (err) {
@@ -331,6 +344,12 @@ class FetchEnvironment {
         // Path validation
         let unconfirmed = true;
         let reenter = false;
+
+        if (prompt) {
+            // Clear messages
+            fetchMsgChannel.clear();
+        }
+
         while (unconfirmed) {
             if (!this._remoteSettingsPath || reenter) {
                 if (!prompt && !reenter) {
@@ -471,6 +490,7 @@ class FetchEnvironment {
                     vscode.window.showInformationMessage('Settings are up to date');
                 }
                 console.log('No updated settings found.');
+                fetchMsgChannel.appendLine('No updated settings found.');
             }
         }
         catch (err) {
@@ -649,6 +669,9 @@ class FetchEnvironment {
             let logStr = JSON.stringify(newSettings, null, 2);
             console.log('Adding default config parameters');
             console.log(logStr);
+            fetchMsgChannel.show();
+            fetchMsgChannel.appendLine('Adding default config parameters');
+            fetchMsgChannel.appendLine(logStr);
 
             try {
                 // Save settings
@@ -703,6 +726,9 @@ class FetchEnvironment {
             let logStr = JSON.stringify(newSettings, null, 2);
             console.log('Updating config parameters');
             console.log(logStr);
+            fetchMsgChannel.show();
+            fetchMsgChannel.appendLine('Updating config parameters');
+            fetchMsgChannel.appendLine(logStr);
 
             try {
                 // Save settings
@@ -810,6 +836,8 @@ class FetchEnvironment {
             // Missing or old version, copy from remote source.
             // No need to remove old version, VS Code will do that automatically upon restart
             console.log('Updating extension "' + id + '" to version ' + version);
+            fetchMsgChannel.show();
+            fetchMsgChannel.appendLine('Updating extension "' + id + '" to version ' + version);
             let srcPath = path.join(this._remoteExtensionPath, folders[folder]);
             let dstPath = path.join(this._localExtensionPath, id + '-' + version);
             fse.copy(srcPath, dstPath, function (err) {
